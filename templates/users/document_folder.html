@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    members
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <img src="{{ user.profile.bg_img.url }}" alt="" width="50%" height="300px">
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <img src="{{ user.profile.personal_img.url }}" alt="" width="20%" height="250px"
+                     style="border-radius: 50%;">
+            </div>
+            <div class="col-6">
+                <h3>{{ user.username }}</h3>
+                <span>
+                    @{{ user.username }}
+                </span>
+                <span>
+                    | Joined us in {{ user.ret_naturalday_joined }}
+                </span>
+                <span>
+                    {% if user.profile.active_now %}
+                        | Active now
+                    {% else %}
+                        | Not active
+                    {% endif %}
+                </span>
+                <div>
+                    <span>Followers {{ user.profile.followers.count }}</span>
+                    <span>| Follow {{ user.profile.follow.count }}</span>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <a href="{% url 'user_timeline' user.pk %}">Timeline</a>
+        <a href="{% url 'user_photos' user.pk %}">Images</a>
+        <a href="{% url 'user_videos' user_pk %}">Videos</a>
+        <a href="#" style="text-decoration: none; color: brown">Documents</a>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+
+            <div class="add-folder col-6 mb-2">
+                <h1>Create Folder</h1>
+                <label for="folder-name">Folder name</label>
+                <input id="folder-name" type="text" class="form-control">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-create-folder">Create new folder</button>
+
+                <script>
+                    const protocol = window.location.protocol
+                    const host = window.location.host
+                    let csrfMiddlewareToken = "{{ csrf_token }}"
+                    let folderName = document.querySelector('#folder-name')
+                    let parentFolder = window.location.pathname.split('/')[5];
+                    let owner = "{{ user_pk }}"
+                    let btnCreateFolder = document.querySelector('#btn-create-folder')
+
+                    btnCreateFolder.addEventListener('click', () => {
+
+                        let data = {
+                            name: folderName.value,
+                            parent_folder: parentFolder,
+                            owner: owner,
+                        }
+                        let res = axios.post(
+                            `${protocol}//${host}/api/posts/${owner}/documents/`,
+                            data,
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    'x-csrftoken': csrfMiddlewareToken
+                                }
+                            }
+                        )
+                        res.then(res => {
+                            console.log("res => ", res.data);
+                        })
+
+                    })
+
+
+                </script>
+            </div>
+            <hr>
+
+            <div class="add-doc col-6 mb-2">
+                <h1>Add Documents</h1>
+
+                <label for="description">Description</label>
+                <textarea name="description" id="description" cols="30" rows="10"
+                          placeholder="Share us what is on your mind.." class="form-control"></textarea>
+
+
+                <div id="type-of-media">
+                    <label for="media-files">File</label>
+                    <input type="file" name="media-files" id="" class="form-control">
+                    <input type="file" name="media-files" id="" class="form-control">
+                    <input type="file" name="media-files" id="" class="form-control">
+                </div>
+
+                <button type="button" class="btn btn-outline-primary btn-sm" id="publish-id">Publish</button>
+            </div>
+            <hr>
+
+            <div class="col-12 mt-5">
+
+                <div class="border border-light-subtle bg-white">
+                    <h1>User Folders</h1>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">At</th>
+                            <th scope="col">Privacy</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for folder_doc_content in folder_doc_contents %}
+                            <tr>
+                                {% if folder_doc_content.document %}
+                                    <td><a href="{{ folder_doc_content.document.url }}">{{ folder_doc_content.document }}</a> </td>
+                                    <td>{{ folder_doc_content.ret_naturalday_created }}</td>
+                                    <td>{{ folder_doc_content.post.get_privacy_str }}</td>
+                                {% else %}
+                                    <td><a href="{% url 'user_doc_folder' user_pk folder_doc_content.pk %}">{{ folder_doc_content.name }}</a></td>
+                                    <td>{{ folder_doc_content.ret_naturalday_created }}</td>
+                                    <td>{{ folder_doc_content.get_privacy_str }}</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripting %}
+<script>
+    let publishId = document.getElementById('publish-id')
+    let mediaFiles = document.querySelectorAll('[name=media-files]')
+
+    let formData = new FormData();
+    let media = 3;
+
+    for (let i = 0; i < mediaFiles.length; i++) {
+        mediaFiles[i].addEventListener('change', (e) => {
+            if (e.target.files[0]){
+                formData.append("post_media", e.target.files[0])
+            }
+        })
+    }
+
+
+    publishId.addEventListener('click', () => {
+        let owner = "{{ user.id }}"
+        let description = document.getElementById('description').value
+
+        formData.append("owner", owner)
+        formData.append("media", media)
+        formData.append("description", description)
+        formData.append("folder_id", parentFolder)
+
+
+
+        console.log(formData)
+        let res = axios.post(
+            `${protocol}//${host}/api/posts/${owner}/`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+        )
+        res.then(res => {
+            console.log("res => ", res.data);
+            media = 3
+        })
+        formData.delete('owner')
+        formData.delete('description')
+        formData.delete('media')
+        formData.delete('post_media')
+        formData.delete("folder_id")
+
+    })
+</script>
+{% endblock %}
+
+{% block scriptfiles %}
+
+{% endblock %}

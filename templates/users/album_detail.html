@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    members
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <img src="{{ user.profile.bg_img.url }}" alt="" width="50%" height="300px">
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <img src="{{ user.profile.personal_img.url }}" alt="" width="20%" height="250px"
+                     style="border-radius: 50%;">
+            </div>
+            <div class="col-6">
+                <h3>{{ user.username }}</h3>
+                <span>
+                    @{{ user.username }}
+                </span>
+                <span>
+                    | Joined us in {{ user.ret_naturalday_joined }}
+                </span>
+                <span>
+                    {% if user.profile.active_now %}
+                        | Active now
+                    {% else %}
+                        | Not active
+                    {% endif %}
+                </span>
+                <div>
+                    <span>Followers {{ user.profile.followers.count }}</span>
+                    <span>| Follow {{ user.profile.follow.count }}</span>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <a href="{% url 'user_timeline' user.pk %}">Timeline</a>
+        <a href="{% url 'user_photos' user.pk %}" style="text-decoration: none; color: brown">Images</a>
+        <a href="{% url 'user_videos' user_pk %}">Videos</a>
+        <a href="{% url 'user_docs' user_pk %}">Documents</a>
+    </div>
+    <div class="container text-center mt-5">
+        <a href="{% url 'user_photos' user.pk %}">Photos</a>
+        <a href="{% url 'user_albums' user.pk %}" style="text-decoration: none; color: brown">Albums</a>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <h1 id="header-type">Add photo</h1>
+        <button type="button" class="btn btn-secondary" id="btn-to-media">Add video</button>
+        <div class="add-post col-12">
+            <div class="border border-light-subtle bg-white">
+
+                <label for="description">Description</label>
+                <textarea name="description" id="description" cols="30" rows="10"
+                          placeholder="Share us what is on your mind.." required></textarea>
+
+                <div id="type-of-media">
+                </div>
+
+                <button type="button" class="btn btn-outline-primary btn-sm" id="publish-id">Publish</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="col-12">
+            <h1>Album Data</h1>
+            <div class="border border-light-subtle bg-white">
+                <p><span class="text-muted">Name:</span> {{ user_album.name }}</p>
+                <a href="javascript:deleteAlbum({{ user_album.pk }})">Delete album</a>
+                <p><span class="text-muted">At:</span> {{ user_album.ret_naturalday_created }}</p>
+
+                <p>
+                    <span class="text-muted">Images:</span>
+                    {{ user_album.get_photos_number }}
+                </p>
+
+                <p>
+                    <span class="text-muted">Videos:</span>
+                    {{ user_album.get_videos_number }}
+                </p>
+
+                <hr>
+            </div>
+        </div>
+        <div class="col-12">
+            <h1>Album Details</h1>
+            {% for user_album_detail in user_album_details %}
+                {% if user_album_detail.img %}
+                    <img src="{{ user_album_detail.img.url }}" alt="" width="200px" height="200px">
+                {% elif user_album_detail.video %}
+                    <video width="320" height="240" controls>
+                        <source src="{{ user_album_detail.video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                {% endif %}
+                <p><span>At:</span>{{ user_album_detail.ret_naturaltime_created }}</p>
+                <hr>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripting %}
+    <script>
+        let owner = "{{ user.id }}"
+        let media = 1
+        const headerType = document.querySelector('#header-type')
+        const btnToMedia = document.querySelector('#btn-to-media')
+        let typeOfMedia = document.querySelector('#type-of-media')
+        const protocol = window.location.protocol
+        const host = window.location.host
+        let csrfMiddlewareToken = "{{ csrf_token }}"
+        let publishId = document.getElementById('publish-id')
+        let formData = new FormData();
+
+        let albumId = window.location.pathname.split("/")[5]
+
+        function receiverFromMediaType(){
+            let mediaFiles = document.querySelectorAll('[name=media-files]')
+            for (let i = 0; i < mediaFiles.length; i++) {
+                mediaFiles[i].addEventListener('change', (e) => {
+                    if (e.target.files[0]){
+                        formData.append("post_media", e.target.files[0])
+                    }
+                })
+            }
+        }
+
+        btnToMedia.addEventListener('click', (e) => {
+            if (media === 1){
+                headerType.innerText = 'Add video'
+                e.target.innerText = 'Add photo'
+                media = 2
+                typeOfMedia.innerHTML = `
+                    <label for="video-file">video</label>
+                    <input type="file" name="media-files" id="" accept="video/*">
+                    <input type="file" name="media-files" id="" accept="video/*">
+                    <input type="file" name="media-files" id="" accept="video/*">
+                `
+                receiverFromMediaType()
+            }else {
+                headerType.innerText = 'Add photo'
+                e.target.innerText = 'Add video'
+                media = 1
+                typeOfMedia.innerHTML = `
+                    <label for="photo-file">photo</label>
+                    <input type="file" name="media-files" id="" accept="image/*">
+                    <input type="file" name="media-files" id="" accept="image/*">
+                    <input type="file" name="media-files" id="" accept="image/*">
+                `
+                receiverFromMediaType()
+            }
+        })
+
+        publishId.addEventListener('click', () => {
+            let description = document.getElementById('description').value
+
+            formData.append("description", description)
+            formData.append("owner", owner)
+            formData.append("media", media)
+
+
+            console.log(formData)
+            let res = axios.post(
+                `${protocol}//${host}/api/posts/${owner}/photos/albums/${albumId}/`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        'x-csrftoken': csrfMiddlewareToken
+                    }
+                }
+            )
+            res.then(res => {
+                console.log("res => ", res.data);
+            })
+            formData.delete('owner')
+            formData.delete('post_media')
+            formData.delete('description')
+            formData.delete('media')
+        })
+
+        /* Delete Album */
+        let deleteAlbum = (album_id) => {
+            let deleteAlbum = axios.delete(
+                `${protocol}//${host}/api/posts/${owner}/photos/albums/delete/${album_id}/`,
+                {
+                    headers: {
+                        "Content-Type": "application-json",
+                        'x-csrftoken': csrfMiddlewareToken
+                    }
+                }
+            )
+            deleteAlbum.then(res => {
+                console.log("res => ", res.data);
+            })
+        }
+    </script>
+{% endblock %}
+
+{% block scriptfiles %}
+
+{% endblock %}

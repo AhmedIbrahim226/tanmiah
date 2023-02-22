@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    members
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <img src="{{ user.profile.bg_img.url }}" alt="" width="50%" height="300px">
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <img src="{{ user.profile.personal_img.url }}" alt="" width="20%" height="250px"
+                     style="border-radius: 50%;">
+            </div>
+            <div class="col-6">
+                <h3>{{ user.username }}</h3>
+                <span>
+                    @{{ user.username }}
+                </span>
+                <span>
+                    | Joined us in {{ user.ret_naturalday_joined }}
+                </span>
+                <span>
+                    {% if user.profile.active_now %}
+                        | Active now
+                    {% else %}
+                        | Not active
+                    {% endif %}
+                </span>
+                <div>
+                    <span>Followers {{ user.profile.followers.count }}</span>
+                    <span>| Follow {{ user.profile.follow.count }}</span>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <a href="{% url 'user_timeline' user.pk %}">Timeline</a>
+        <a href="{% url 'user_photos' user.pk %}">Images</a>
+        <a href="{% url 'user_videos' user_pk %}">Videos</a>
+        <a href="#" style="text-decoration: none; color: brown">Documents</a>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+
+            <div class="add-folder col-6 mb-2">
+                <h1>Create Folder</h1>
+                <label for="folder-name">Folder name</label>
+                <input id="folder-name" type="text" class="form-control">
+                <label for="folder-privacy">Privacy</label>
+                <select name="folder-privacy" id="folder-privacy" class="form-select">
+                    <option value="1">Public</option>
+                    <option value="2">All members</option>
+                    <option value="3">Just me</option>
+                </select>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-create-folder">Create new folder</button>
+
+                <script>
+                    const protocol = window.location.protocol
+                    const host = window.location.host
+                    let csrfMiddlewareToken = "{{ csrf_token }}"
+                    let folderName = document.querySelector('#folder-name')
+                    let folderPrivacy = document.querySelector('#folder-privacy')
+                    let owner = "{{ user_pk }}"
+                    let btnCreateFolder = document.querySelector('#btn-create-folder')
+
+                    btnCreateFolder.addEventListener('click', () => {
+
+                        let data = {
+                            name: folderName.value,
+                            privacy: folderPrivacy.value,
+                            owner: owner,
+                        }
+                        let res = axios.post(
+                            `${protocol}//${host}/api/posts/${owner}/documents/`,
+                            data,
+                            {
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    'x-csrftoken': csrfMiddlewareToken
+                                }
+                            }
+                        )
+                        res.then(res => {
+                            console.log("res => ", res.data);
+                        })
+
+                    })
+
+
+                </script>
+            </div>
+            <hr>
+
+            <div class="add-doc col-6 mb-2">
+                <h1>Add Documents</h1>
+                <label for="doc-privacy">Privacy</label>
+                <select name="doc-privacy" id="doc-privacy" class="form-select">
+                    <option value="1">Public</option>
+                    <option value="2">All members</option>
+                    <option value="3">Just me</option>
+                </select>
+
+                <label for="description">Description</label>
+                <textarea name="description" id="description" cols="30" rows="10"
+                          placeholder="Share us what is on your mind.." class="form-control"></textarea>
+
+
+                <div id="type-of-media">
+                    <label for="media-files">File</label>
+                    <input type="file" name="media-files" id="" class="form-control">
+                    <input type="file" name="media-files" id="" class="form-control">
+                    <input type="file" name="media-files" id="" class="form-control">
+                </div>
+
+
+                <label for="folder">Folder</label>
+                <select name="folder" id="folder" class="form-select" onchange="folderChange(this)">
+                    <option value="">------------------</option>
+                    {% for user_doc_content in user_doc_contents %}
+                        {% if not user_doc_content.document %}
+                            <option value="{{ user_doc_content.pk }}">{{ user_doc_content.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+
+                <label for="sub-folder">Sub Folder</label>
+                <select name="folder" id="sub-folder" class="form-select" onchange="folderChange(this)"></select>
+
+                <button type="button" class="btn btn-outline-primary btn-sm" id="publish-id">Publish</button>
+            </div>
+            <hr>
+
+            <div class="col-12 mt-5">
+
+                <div class="border border-light-subtle bg-white">
+                    <h1>User Folders</h1>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">At</th>
+                            <th scope="col">Privacy</th>
+                            <th scope="col">Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for user_doc_content in user_doc_contents %}
+                            <tr>
+                                {% if user_doc_content.document %}
+                                    <td><a href="{{ user_doc_content.document.url }}">{{ user_doc_content.document }}</a> </td>
+                                    <td>{{ user_doc_content.ret_naturalday_created }}</td>
+                                    <td>{{ user_doc_content.post.get_privacy_str }}</td>
+                                    <td><a href="javascript:deleteMedia({{ user_doc_content.pk }})">Delete file</a></td>
+                                {% else %}
+                                    <td><a href="{% url 'user_doc_folder' user_pk user_doc_content.pk %}">{{ user_doc_content.name }}</a></td>
+                                    <td>{{ user_doc_content.ret_naturalday_created }}</td>
+                                    <td>{{ user_doc_content.get_privacy_str }}</td>
+                                    <td><a href="javascript:deleteFolder({{ user_doc_content.pk }})">Delete folder</a></td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripting %}
+<script>
+    let publishId = document.getElementById('publish-id')
+    let mediaFiles = document.querySelectorAll('[name=media-files]')
+
+    let formData = new FormData();
+    let media = 3;
+
+    let subFolder = document.querySelector('#sub-folder')
+    let selectedFolderId;
+
+    let folderChange = (target) => {
+        selectedFolderId = target.value
+        let res = axios.get(
+            `${protocol}//${host}/api/posts/${owner}/documents/folders/${selectedFolderId}/`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+        )
+        res.then(res => {
+            if (res.data.length > 0){
+                subFolder.innerHTML = `<option value="">------------------</option>`
+                for (const re of res.data) {
+                    subFolder.innerHTML += `<option value="${re.id}">${re.name}</option>`
+                }
+            }else{
+                subFolder.innerHTML = ``
+            }
+        })
+    }
+
+    for (let i = 0; i < mediaFiles.length; i++) {
+        mediaFiles[i].addEventListener('change', (e) => {
+            if (e.target.files[0]){
+                formData.append("post_media", e.target.files[0])
+            }
+        })
+    }
+
+
+    publishId.addEventListener('click', () => {
+        let owner = "{{ user.id }}"
+        let docPrivacy = document.getElementById('doc-privacy').value
+        let description = document.getElementById('description').value
+
+        formData.append("owner", owner)
+        formData.append("privacy", docPrivacy)
+        formData.append("description", description)
+        formData.append("media", media)
+        if (selectedFolderId){
+            formData.append("folder_id", selectedFolderId)
+        }
+
+
+        console.log(formData)
+        let res = axios.post(
+            `${protocol}//${host}/api/posts/${owner}/`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+        )
+        res.then(res => {
+            console.log("res => ", res.data);
+            media = 3
+        })
+        formData.delete('owner')
+        formData.delete('docPrivacy')
+        formData.delete('description')
+        formData.delete('media')
+        formData.delete('post_media')
+        formData.delete("folder_id")
+
+    })
+
+    /* Delete media */
+    let deleteMedia = (media_id) => {
+        console.log(media_id)
+        let deleteMedia = axios.delete(
+            `${protocol}//${host}/api/posts/${owner}/delete/media/${media_id}/`,
+            {
+                headers: {
+                    "Content-Type": "application-json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+        )
+        deleteMedia.then(res => {
+            console.log("res => ", res.data);
+        })
+    }
+
+    /* Delete Folder */
+    let deleteFolder = (folder_id) => {
+        console.log(folder_id)
+        let deleteFolder = axios.delete(
+            `${protocol}//${host}/api/posts/${owner}/documents/delete/${folder_id}/`,
+            {
+                headers: {
+                    "Content-Type": "application-json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+        )
+        deleteFolder.then(res => {
+            console.log("res => ", res.data);
+        })
+    }
+</script>
+{% endblock %}
+
+{% block scriptfiles %}
+
+{% endblock %}

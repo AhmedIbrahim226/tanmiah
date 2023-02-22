@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    members
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <img src="{{ user.profile.bg_img.url }}" alt="" width="50%" height="300px">
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <img src="{{ user.profile.personal_img.url }}" alt="" width="20%" height="250px"
+                     style="border-radius: 50%;">
+            </div>
+            <div class="col-6">
+                <h3>{{ user.username }}</h3>
+                <span>
+                    @{{ user.username }}
+                </span>
+                <span>
+                    | Joined us in {{ user.ret_naturalday_joined }}
+                </span>
+                <span>
+                    {% if user.profile.active_now %}
+                        | Active now
+                    {% else %}
+                        | Not active
+                    {% endif %}
+                </span>
+                <div>
+                    <span>Followers {{ user.profile.followers.count }}</span>
+                    <span>| Follow {{ user.profile.follow.count }}</span>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <a href="" style="text-decoration: none; color: brown">Timeline</a>
+        <a href="{% url 'user_photos' user.pk %}">Images</a>
+        <a href="{% url 'user_videos' user_pk %}">Videos</a>
+        <a href="{% url 'user_docs' user_pk %}">Documents</a>
+    </div>
+
+    {#  Post section  #}
+    <div class="container-fluid text-center">
+        <div class="row">
+
+            <div class="add-post col-12">
+                <h1>Add Post</h1>
+                <div class="border border-light-subtle bg-white">
+
+                    <label for="privacy">Privacy</label>
+                    <select name="privacy" id="privacy">
+                        <option value="1">Public</option>
+                        <option value="2">All members</option>
+                        <option value="3">Just me</option>
+                    </select>
+
+                    <label for="description">Description</label>
+                    <textarea name="description" id="description" cols="30" rows="10"
+                              placeholder="Share us what is on your mind.."></textarea>
+
+                    <label for="media">Include media</label>
+                    <select name="media" id="media" onchange="mediaType(this)">
+                        <option value="4">Select media type...</option>
+                        <option value="1">Photo</option>
+                        <option value="2">Video</option>
+                        <option value="3">doc</option>
+                    </select>
+
+                    <div id="type-of-media">
+
+                    </div>
+
+                    <label for="share-with">share with</label>
+                    <select name="share-with" id="share-with" multiple onchange="shareWithSelect(this)"></select>
+
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="publish-id">Publish</button>
+                </div>
+            </div>
+
+            <div class="list-post col-12 mt-5">
+                <h1>List posts</h1>
+                {% for post in posts %}
+                    <div class="post-detail border border-light-subtle bg-white">
+                        <p><span class="text-muted">owner:</span> {{ post.owner.username }}</p>
+                        <a href="javascript:deletePost({{ post.pk }})" style="text-decoration: none; color: brown">Delete
+                            post</a>
+                        <p><span class="text-muted">at:</span> {{ post.ret_naturaltime_created }}</p>
+                        <p><span class="text-muted">privacy:</span> {{ post.get_privacy_str }}</p>
+                        <p>
+                            <span class="text-muted">share_with:</span>
+                            {% for other in post.share_with.all %}
+                                <a href="#"><- @{{ other.username }}</a>
+                            {% endfor %}
+                        </p>
+                        <p><span class="text-muted">description:</span> {{ post.description }}</p>
+
+                        {% if post.media == 1 %}
+                            <h1>Images</h1>
+                            {% for post_media in post.post_media.all %}
+                                {% if post_media.img %}
+                                    <img src="{{ post_media.img.url }}" alt="" width="200px" height="200px">
+                                    <a href="javascript:deleteMedia({{ post_media.pk }})"
+                                       style="text-decoration: none; color: brown">Delete media</a>
+                                {% endif %}
+                            {% endfor %}
+                        {% elif post.media == 2 %}
+                            <h1>Videos</h1>
+                            {% for post_media in post.post_media.all %}
+                                <video width="320" height="240" controls>
+                                    <source src="{{ post_media.video.url }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                                <a href="javascript:deleteMedia({{ post_media.pk }})"
+                                   style="text-decoration: none; color: brown">Delete media</a>
+                            {% endfor %}
+                        {% elif post.media == 3 %}
+                            <h1>Docs</h1>
+                            {% for post_media in post.post_media.all %}
+                                <a href="{{ post_media.document.url }}">{{ post_media.document }}</a>
+                                <a href="javascript:deleteMedia({{ post_media.pk }})"
+                                   style="text-decoration: none; color: brown">Delete media</a>
+                            {% endfor %}
+                        {% endif %}
+
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+
+    </div>
+{% endblock %}
+
+{% block scripting %}
+    <script>
+        {#let socket = newWebsocket()#}
+        let users_list = getAllUsers()
+        let userShareWith = document.getElementById('share-with')
+        let csrfMiddlewareToken = "{{ csrf_token }}"
+        let publishId = document.getElementById('publish-id')
+        let typeOfMedia = document.querySelector('#type-of-media')
+        let formData = new FormData();
+        let media = 4;
+        let owner = "{{ user.id }}"
+
+        users_list.then(response => {
+            response.map((v, i) => {
+                let option = document.createElement("option")
+                option.value = v.id
+                option.text = v.username
+                userShareWith.append(option)
+            })
+        })
+
+        let shareWithList = []
+
+        function shareWithSelect(target) {
+            let options = target && target.options;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].selected) {
+                    formData.append("share_with", options[i].value)
+                }
+            }
+        }
+
+        let mediaType = (target) => {
+            let val = target.value
+            media = val
+            if (val === "1") {
+                typeOfMedia.innerHTML = `
+                    <label for="photo-file">photo</label>
+                    <input type="file" name="media-files" id="" accept="image/*">
+                    <input type="file" name="media-files" id="" accept="image/*">
+                    <input type="file" name="media-files" id="" accept="image/*">
+                `
+            } else if (val === "2") {
+                typeOfMedia.innerHTML = `
+                    <label for="video-file">video</label>
+                    <input type="file" name="media-files" id="" accept="video/*">
+                    <input type="file" name="media-files" id="" accept="video/*">
+                    <input type="file" name="media-files" id="" accept="video/*">
+                `
+            } else if (val === "3") {
+                typeOfMedia.innerHTML = `
+                    <label for="file-file">doc</label>
+                    <input type="file" name="media-files" id="">
+                    <input type="file" name="media-files" id="">
+                    <input type="file" name="media-files" id="">
+                `
+            } else if (val === "4") {
+                typeOfMedia.innerHTML = ``
+            }
+            receiverFromMediaType(val)
+        }
+
+        let postMediaList = []
+
+        function receiverFromMediaType(mediaTypeVal) {
+            let mediaFiles = document.querySelectorAll('[name=media-files]')
+            for (let i = 0; i < mediaFiles.length; i++) {
+                mediaFiles[i].addEventListener('change', (e) => {
+                    if (e.target.files[0]) {
+                        formData.append("post_media", e.target.files[0])
+                    }
+                })
+            }
+        }
+
+
+        publishId.addEventListener('click', () => {
+
+            let privacy = document.getElementById('privacy').value
+            let description = document.getElementById('description').value
+            /*
+            let shareWith = shareWithList.length > 0 ? [... new Set(shareWithList)] : false
+            let postMedia = postMediaList.length > 0 ? postMediaList : []
+             */
+            formData.append("owner", owner)
+            formData.append("privacy", privacy)
+            formData.append("description", description)
+            formData.append("media", media)
+
+
+            console.log(formData)
+            let res = axios.post(
+                `${protocol}//${host}/api/posts/${owner}/`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        'x-csrftoken': csrfMiddlewareToken
+                    }
+                }
+            )
+            res.then(res => {
+                console.log("res => ", res.data);
+                media = 4
+            })
+            formData.delete('owner')
+            formData.delete('privacy')
+            formData.delete('description')
+            formData.delete('media')
+            formData.delete('share_with')
+            formData.delete('post_media')
+        })
+
+        /* Delete post*/
+        let deletePost = (post_id) => {
+            console.log(post_id)
+            let deletePost = axios.delete(
+                `${protocol}//${host}/api/posts/${owner}/delete/${post_id}/`,
+                {
+                    headers: {
+                        "Content-Type": "application-json",
+                        'x-csrftoken': csrfMiddlewareToken
+                    }
+                }
+            )
+            deletePost.then(res => {
+                console.log("res => ", res.data);
+            })
+        }
+
+        /* Delete media */
+        let deleteMedia = (media_id) => {
+            console.log(media_id)
+            let deleteMedia = axios.delete(
+                `${protocol}//${host}/api/posts/${owner}/delete/media/${media_id}/`,
+                {
+                    headers: {
+                        "Content-Type": "application-json",
+                        'x-csrftoken': csrfMiddlewareToken
+                    }
+                }
+            )
+            deleteMedia.then(res => {
+                console.log("res => ", res.data);
+            })
+        }
+
+    </script>
+{% endblock %}
+
+{% block scriptfiles %}
+    <script src="{% static 'js/users/users.js' %}"></script>
+
+{% endblock %}

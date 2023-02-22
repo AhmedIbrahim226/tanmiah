@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}
+members
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <img src="{{user.profile.bg_img.url}}" alt="" width="50%" height="300px">
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="row justify-content-center">
+            <div class="col-6">
+                <img src="{{user.profile.personal_img.url}}" alt="" width="20%" height="250px" style="border-radius: 50%;">
+            </div>
+            <div class="col-6">
+                <h3>{{user.username}}</h3>
+                <span>
+                    @{{user.username}}
+                </span>
+                <span>
+                    | Joined us in {{user.ret_naturalday_joined}}
+                </span>
+                <span>
+                    {% if user.profile.active_now %}
+                        | Active now
+                    {% else %}
+                        | Not active
+                    {% endif %}
+                </span>
+                <div>
+                    <span>Followers {{user.profile.followers.count}}</span>
+                    <span>| Follow {{user.profile.follow.count}}</span>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <a href="{% url 'user_timeline' user.pk %}">Timeline</a>
+        <a href="{% url 'user_photos' user.pk %}" style="text-decoration: none; color: brown">Images</a>
+        <a href="{% url 'user_videos' user_pk %}">Videos</a>
+        <a href="{% url 'user_docs' user_pk %}">Documents</a>
+    </div>
+    <div class="container text-center mt-5">
+        <a href="" style="text-decoration: none; color: brown">Photos</a>
+        <a href="{% url 'user_albums' user.pk %}">Albums</a>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <div class="col-12">
+            <div class="post-detail border border-light-subtle bg-white">
+                {% for user_photo in user_photos %}
+                    {% if user_photo.img %}
+                        <img src="{{ user_photo.img.url }}" width="100px" height="100px" alt="">
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid text-center mt-5">
+        <h1>Add Photo</h1>
+            <div class="add-post col-12">
+                <div class="border border-light-subtle bg-white">
+
+                    <label for="privacy">Privacy</label>
+                    <select name="privacy" id="privacy">
+                        <option value="1">Public</option>
+                        <option value="2">All members</option>
+                        <option value="3">Just me</option>
+                    </select>
+
+                    <label for="description">Description</label>
+                    <textarea name="description" id="description" cols="30" rows="10" placeholder="Share us what is on your mind.."></textarea>
+
+
+                    <div id="type-of-media">
+                        <label for="photo-file">photo</label>
+                        <input type="file" name="media-files" id="" accept="image/*">
+                        <input type="file" name="media-files" id="" accept="image/*">
+                        <input type="file" name="media-files" id="" accept="image/*">
+                    </div>
+
+
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="publish-id">Publish</button>
+                </div>
+            </div>
+    </div>
+
+{% endblock %}
+
+{% block scripting %}
+<script>
+        const protocol = window.location.protocol
+        const host = window.location.host
+        let csrfMiddlewareToken = "{{ csrf_token }}"
+        let publishId = document.getElementById('publish-id')
+        let mediaFiles = document.querySelectorAll('[name=media-files]')
+
+        let formData = new FormData();
+        let media = 1;
+
+        for (let i = 0; i < mediaFiles.length; i++) {
+            mediaFiles[i].addEventListener('change', (e) => {
+                if (e.target.files[0]){
+                    formData.append("post_media", e.target.files[0])
+                }
+            })
+        }
+
+
+        publishId.addEventListener('click', () => {
+            let owner = "{{ user.id }}"
+            let privacy = document.getElementById('privacy').value
+            let description = document.getElementById('description').value
+
+            formData.append("owner", owner)
+            formData.append("privacy", privacy)
+            formData.append("description", description)
+            formData.append("media", media)
+
+
+            console.log(formData)
+            let res = axios.post(
+                `${protocol}//${host}/api/posts/${owner}/`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        'x-csrftoken': csrfMiddlewareToken
+                    }
+                }
+            )
+            res.then(res => {
+                console.log("res => ", res.data);
+                media = 1
+            })
+            formData.delete('owner')
+            formData.delete('privacy')
+            formData.delete('description')
+            formData.delete('media')
+            formData.delete('post_media')
+        })
+</script>
+{% endblock %}
+
+{% block scriptfiles %}
+
+{% endblock %}
