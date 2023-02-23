@@ -22,7 +22,7 @@ public/
 
 .vscode/
 
-/static/
+/media/
 
 .env
 debug8.log
