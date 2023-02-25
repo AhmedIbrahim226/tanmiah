@@ -12,7 +12,7 @@ class RateLimitExceeded(PermissionDenied):
 
 
 class RateLimit:
-    def __init__(self, *, key, limit, period, cache=None, key_prefix="rl:"):
+    def __init__(self, *, key, limit, period, cache=None, key_prefix):
         self.key = key
         self.limit = limit
 
@@ -22,7 +22,7 @@ class RateLimit:
         else:
             self.seconds = period
 
-        self.cache = cache or caches["default"]
+        self.cache = cache or caches["ratelimiting"]
         self.key_prefix = key_prefix
 
     def get_usage(self):
@@ -38,10 +38,9 @@ class RateLimit:
         usage = self.get_usage()
 
         if usage >= self.limit:
-            return "Can't"
-            # raise RateLimitExceeded(usage=usage, limit=self.limit)
+            print(False)
+            return False
 
         self.increment_usage()
-        print(usage)
-        print(self.limit)
-        return "He can"
+        print(True)
+        return True

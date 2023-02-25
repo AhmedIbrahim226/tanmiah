@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "daphne",
+    # 'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -176,7 +177,18 @@ CACHES = {
     'ratelimiting': {
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': '127.0.0.1:11211',
+        'KEY_PREFIX': "RL_",
+        'TIMEOUT': None,
     },
 }
 
 # RATELIMIT_USE_CACHE = 'ratelimiting'
+
+JAZZMIN_SETTINGS = {
+
+    # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
+    "site_brand": "Tanmiah",
+}
+JAZZMIN_UI_TWEAKS = {
+    "theme": "flatly",
+}

@@ -6,4 +6,4 @@ class PointsConfig(AppConfig):
     name = 'admin_control.points'
 
     def ready(self):
-        from .signals import function_case
+        from .signals import function_case, receivers

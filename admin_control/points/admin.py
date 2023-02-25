@@ -1,35 +1,28 @@
-from django import forms
 from django.contrib import admin
-from .models import (Point, PointFunction, TotalPointFunction)
-from django.forms.models import BaseInlineFormSet
+from .models import (Point, PointFunction, UserPointFunctionEarning, TotalPoint)
+from django.utils.html import html_safe
+from .forms import PointFunctionForm, PointFunctionFormSet
 
-""
-class PointFunctionFormSet(BaseInlineFormSet):
-    def _construct_form(self, i, **kwargs):
-        form = super()._construct_form(i, **kwargs)
-        form.empty_permitted = False
-        return form
-    
-    def clean(self):
-        ctx = super().clean()
-        for f in self.forms:
-            print(f.cleaned_data)
-        return ctx
+
+@html_safe
+class JSPath:
+    def __str__(self):
+        return '<script defer src="/static/admin/js/inline_point_function.js/"></script>'
 
 
 class InlinePointFunction(admin.TabularInline):
-    class Media:
-        js = ("admin/js/custom.js",)
-
     model = PointFunction
     extra = 1
+    form = PointFunctionForm
     formset = PointFunctionFormSet
+
+    class Media:
+        js = (JSPath(),)
 
 
 @admin.register(PointFunction)
 class PointFunctionAdmin(admin.ModelAdmin):
     """"""
-""
 
 @admin.register(Point)
 class PointAdmin(admin.ModelAdmin):
@@ -37,8 +30,11 @@ class PointAdmin(admin.ModelAdmin):
     inlines = [InlinePointFunction]
 
 
+@admin.register(TotalPoint)
+class TotalPointAdmin(admin.ModelAdmin):
+    """"""
 
 
-@admin.register(TotalPointFunction)
-class TotalPointFunctionAdmin(admin.ModelAdmin):
+@admin.register(UserPointFunctionEarning)
+class UserPointFunctionEarningAdmin(admin.ModelAdmin):
     """"""

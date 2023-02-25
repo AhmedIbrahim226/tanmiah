@@ -9,28 +9,10 @@ from .forms import (LoginForm, UserRegisterForm)
 from django.db.models import Q
 from itertools import chain
 from django.utils.decorators import method_decorator
-from django_ratelimit.decorators import ratelimit
-from admin_control.points.ratelimit import RateLimit, RateLimitExceeded
 
-def my_rate(group, request):
-    """ customize rate limitation """
-    if request.user.is_authenticated:
-        return '10/m'
-    return '100/m'
 
-# @method_decorator(ratelimit(key='user', rate='5/10s', method='GET'), name='get')
 class TanmiahHome(TemplateView):
     template_name = 'users/tanmiah_home.html'
-
-    def get(self, request, *args, **kwargs):
-        context = super().get(request, *args, **kwargs)
-        x = RateLimit(
-            key=f"{request.user.id}",
-            limit=3,
-            period=10,
-        ).check()
-        print(x)
-        return context
 
 
 class UserLoginView(LoginView):
