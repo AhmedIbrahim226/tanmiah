@@ -81,8 +81,8 @@ class Post(models.Model):
     share_with = models.ManyToManyField(UserAuth, related_name='posts_with_me', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
-    safe = models.BooleanField(default=False)
-
+    safe = models.BooleanField(default=False, help_text=_(
+        'If saving in false condition post will delete, in True condition post will publish'))
 
     @cached_property
     def get_privacy_str(self):

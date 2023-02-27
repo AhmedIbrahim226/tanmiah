@@ -9,7 +9,7 @@ from ..models import Point, PointFunction, UserPointFunctionEarning, TotalPoint
 from ..ratelimit import RateLimit
 
 
-def manage_ratelimit_and_earns(func, user=None):
+def manage_ratelimit_and_earns(func, user):
     user_rate_limit = RateLimit(
         key=f"_{user.id}",
         limit=func.times,
