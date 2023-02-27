@@ -101,9 +101,10 @@ class AlbumSerializer(serializers.ModelSerializer):
         album_media = validated_data.pop('post_media', [])
 
         album = Album.objects.create(**validated_data)
+        post = Post.objects.create(owner=album.owner, privacy=album.privacy, media=1)
 
         for media in album_media:
-            PostMedia.objects.create(album=album, **media)
+            PostMedia.objects.create(post=post, album=album, **media)
         return album
 
 class AlbumPostMediaSerializer(serializers.ModelSerializer):

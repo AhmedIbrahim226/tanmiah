@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Chat
+{% endblock title %}
+
+
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+
+                <div class="form-floating mb-3 mt-5">
+                    <input type="file" class="form-control" id="file_inp_id" placeholder="name@example.com">
+                    <button type="button" class="btn btn-primary" id="btn_upload_id">Upload</button>
+                </div>
+                
+                <img src="" alt="" id="img_id">
+
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block scriptfiles %}
+  <script src="{% static 'js/chats/websocket.js' %}"></script>
+{% endblock scriptfiles %}
+
+{% block scripting %}
+<script>
+    let socket = newWebsocket()
+
+    let btnUploadId = document.querySelector('#btn_upload_id')
+    let fileInpId = document.querySelector('#file_inp_id')
+
+    function getBase64(file) {
+        var reader = new FileReader();
+        let file64;
+        reader.readAsDataURL(file);
+        reader.onload = function () {
+            socket.send(JSON.stringify({
+                'type': 'img',
+                'message': 'msg with image',
+                'img': reader.result
+            }))
+        };
+        reader.onerror = function (error) {
+            console.log('Error: ', error);
+        };
+
+    }
+    btnUploadId.addEventListener('click', () => {
+        getBase64(fileInpId.files[0])
+    })
+
+    socket.onmessage = (e) => {
+        let json_data = JSON.parse(e.data);
+        if (json_data.type == 'img') {
+            document.querySelector('#img_id').src = json_data.img
+        };
+    }
+</script>
+{% endblock scripting %}

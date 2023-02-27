@@ -37,6 +37,7 @@ def manage_ratelimit_and_earns(func, user=None):
             if not created:
                 check_to_increase.earns_until_now += func.earn
                 check_to_increase.save()
+        return
 
 # Add post without media
 def add_post_without_media(sender, instance, using, **kwargs):

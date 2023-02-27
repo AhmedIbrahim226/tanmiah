@@ -38,7 +38,7 @@ class UserTimelineView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        posts = self.request.user.posts.all().order_by('-created_at')
+        posts = self.request.user.posts.filter(safe=True).order_by('-created_at')
         context.update({'posts': posts})
         return context
 
@@ -49,7 +49,8 @@ class UserPhotosView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_photos = PostMedia.objects.filter(
-            Q(post__owner=self.request.user) | Q(album__owner=self.request.user)).order_by('-created_at')
+            Q(post__owner=self.request.user) | Q(album__owner=self.request.user), post__safe=True).order_by(
+            '-created_at')
         context.update(user_photos=user_photos)
         return context
 
@@ -69,7 +70,7 @@ class UserAlbumDetailView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_album = self.request.user.albums.get(pk=kwargs.get('album_id'))
-        album_media = user_album.album_media.all().order_by('-created_at')
+        album_media = user_album.album_media.filter(post__safe=True).order_by('-created_at')
         context.update(user_album=user_album)
         context.update(user_album_details=album_media)
         return context
@@ -81,7 +82,8 @@ class UserVideosView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_videos = PostMedia.objects.filter(
-            Q(post__owner=self.request.user) | Q(album__owner=self.request.user)).order_by('-created_at')
+            Q(post__owner=self.request.user) | Q(album__owner=self.request.user), post__safe=True).order_by(
+            '-created_at')
         context.update(user_videos=user_videos)
         return context
 
@@ -92,13 +94,14 @@ class UserDocsView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_docs_files = PostMedia.objects.filter(post__owner=self.request.user, folder__isnull=True, img__exact='',
-                                             video__exact='', document__isnull=False)
+                                                   video__exact='', document__isnull=False, post__safe=True)
         user_folders = self.request.user.folders.filter(parent_folder__isnull=True)
 
         user_doc_contents = sorted(chain(user_docs_files, user_folders), key=lambda k: k.created_at)
         context.update(user_doc_contents=user_doc_contents[::-1])
 
         return context
+
 
 class UserDocsFolderView(LoginRequiredMixin, TemplateView):
     template_name = 'users/document_folder.html'
@@ -107,7 +110,7 @@ class UserDocsFolderView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         folder = Folder.objects.prefetch_related('sub_folder').get(pk=kwargs.get('folder_id'))
         sub_folders = folder.sub_folder.all()
-        folder_media_docs = PostMedia.objects.filter(folder=folder)
+        folder_media_docs = PostMedia.objects.filter(folder=folder, post__safe=True)
 
         folder_doc_contents = sorted(chain(sub_folders, folder_media_docs), key=lambda k: k.created_at)
         last_ordering = reversed(folder_doc_contents)

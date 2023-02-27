@@ -81,6 +81,7 @@ class Post(models.Model):
     share_with = models.ManyToManyField(UserAuth, related_name='posts_with_me', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
+    safe = models.BooleanField(default=False)
 
 
     @cached_property

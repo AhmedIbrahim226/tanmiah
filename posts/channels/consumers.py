@@ -14,7 +14,16 @@ class PostConsumer(AsyncWebsocketConsumer):
 
 
     async def receive(self, text_data=None, bytes_data=None):
-        print(text_data)
+        convert_toJson = json.loads(text_data)
+        _type = convert_toJson.get('type')
+        if _type == 'img':
+            await self.send(json.dumps(
+                {
+                'type': 'img',
+                'message': convert_toJson.get('message'),
+                'img': convert_toJson.get('img')
+                }
+            ))
 
     # Msgs from out of self
     # async def manage_sending(self, event):

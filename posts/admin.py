@@ -9,7 +9,6 @@ class AlbumAdmin(admin.ModelAdmin):
 
 @admin.register(Folder)
 class FolderAdmin(admin.ModelAdmin):
-    # inlines = [InlinePostMedia]
     """"""
 
 @admin.register(Post)

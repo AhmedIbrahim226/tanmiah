@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'posts',
     'admin_control',
     'admin_control.points',
+    'chats',
 
     # Third-party apps
     'rest_framework',
