@@ -9,60 +9,36 @@ from ..models import Point, PointFunction, UserPointFunctionEarning, TotalPoint
 from ..ratelimit import RateLimit
 
 
-def manage_ratelimit_and_earns(func, user):
+def manage_ratelimit(func, user):
     user_rate_limit = RateLimit(
         key=f"_{user.id}",
         limit=func.times,
         period=func.get_times_limited_timedelta,
         key_prefix=func.key_prefix
     ).check()
-    if user_rate_limit:
-        check_to_increase, created = UserPointFunctionEarning.objects.get_or_create(
-            owner=user,
-            point_function=func,
-            defaults={'earns_until_now': func.earn}
-        )
-        if func.deduction:
-            if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
-                TotalPoint.objects.filter(point=func.point, user=user).update(
-                    total_earning=F('total_earning') - func.earn)
-                if not created:
-                    check_to_increase.earns_until_now += func.earn
-                    check_to_increase.save()
-            return
 
-        if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
-            TotalPoint.objects.filter(point=func.point, user=user).update(
-                total_earning=F('total_earning') + func.earn)
-            if not created:
-                check_to_increase.earns_until_now += func.earn
-                check_to_increase.save()
-        return
+    return user_rate_limit
 
-# Add post without media
-def add_post_without_media(sender, instance, using, **kwargs):
-    """without media option media = 4"""
-
+# Add post point functions
+def add_post_point_functions(sender, instance, using, **kwargs):
     if kwargs.get('created'):
         if instance.media == 4:
+            """without media option media = 4"""
             functions = PointFunction.objects.select_related('point').filter(when=1, active=True)
             if functions.exists():
                 for func in functions:
-                    manage_ratelimit_and_earns(func, instance.owner)
-
-# Add post with media
-def add_post_with_media(sender, instance, using, **kwargs):
-    """with media option media = [1 | 2 | 3]"""
-
-    if kwargs.get('created'):
-        if instance.media != 4:
+                    ratelimit = manage_ratelimit(func, instance.owner)
+                    if ratelimit:
+                        Post.objects.filter(id=instance.id).update(point_game=True)
+            return
+        else:
+            """with media option media = [1 | 2 | 3]"""
             functions = PointFunction.objects.select_related('point').filter(when=2, active=True)
             if functions.exists():
                 for func in functions:
-                    manage_ratelimit_and_earns(func, instance.owner)
+                    ratelimit = manage_ratelimit(func, instance.owner)
+                    if ratelimit:
+                        Post.objects.filter(id=instance.id).update(point_game=True)
+            return
 
-
-
-
-post_save.connect(receiver=add_post_without_media, sender=Post)
-post_save.connect(receiver=add_post_with_media, sender=Post)
+post_save.connect(receiver=add_post_point_functions, sender=Post)

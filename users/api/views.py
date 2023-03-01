@@ -6,4 +6,6 @@ from .serializers import (UserAuthSerializer, UserAuth)
 class UserAuthAPI(ModelViewSet):
     http_method_names = ('get', 'post')
     serializer_class = UserAuthSerializer
-    queryset = UserAuth.objects.all()
+
+    def get_queryset(self):
+        return UserAuth.objects.exclude(id=self.request.user.id)

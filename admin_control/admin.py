@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.db.models import F
 
 from posts.models import PostMedia
 from .models import PostProxy
+from .points.models import PointFunction, UserPointFunctionEarning, TotalPoint
 
 
 class PostMediaInline(admin.TabularInline):
@@ -35,8 +37,42 @@ class PostProxyAdmin(admin.ModelAdmin):
             [field.name for field in self.model._meta.many_to_many]
         ))
 
+    def manage_point_functions_on_post(self, request, obj, form, change, functions):
+        if functions.exists():
+            for func in functions:
+                check_to_increase, created = UserPointFunctionEarning.objects.get_or_create(
+                    owner=obj.owner,
+                    point_function=func,
+                    defaults={'earns_until_now': func.earn}
+                )
+                if func.deduction:
+                    if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
+                        TotalPoint.objects.filter(point=func.point, user=obj.owner).update(
+                            total_earning=F('total_earning') - func.earn)
+                        if not created:
+                            check_to_increase.earns_until_now += func.earn
+                            check_to_increase.save()
+                    return super().save_model(request, obj, form, change)
+
+                if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
+                    TotalPoint.objects.filter(point=func.point, user=obj.owner).update(
+                        total_earning=F('total_earning') + func.earn)
+                    if not created:
+                        check_to_increase.earns_until_now += func.earn
+                        check_to_increase.save()
+                return super().save_model(request, obj, form, change)
+
     def save_model(self, request, obj, form, change):
-        safe = form.cleaned_data.get('safe')
-        if change and not safe:
+        if change and not obj.safe:
             return obj.delete()
+
+        if obj.point_game:
+            """without media option media = 4"""
+            if obj.media == 4:
+                functions = PointFunction.objects.select_related('point').filter(when=1, active=True)
+                self.manage_point_functions_on_post(request, obj, form, change, functions)
+            else:
+                """with media option media = [1 | 2 | 3]"""
+                functions = PointFunction.objects.select_related('point').filter(when=2, active=True)
+                self.manage_point_functions_on_post(request, obj, form, change, functions)
         return super().save_model(request, obj, form, change)

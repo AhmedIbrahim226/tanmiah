@@ -9,10 +9,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class UserAuthSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
+    joined_in = serializers.ReadOnlyField(source='ret_naturalday_joined')
     class Meta:
         model = UserAuth
         fields = ('id', 'username', 'first_name', 'last_name', 'phone_number', 'is_active', 'is_moderator', 'is_staff',
-                  'is_superuser', 'is_user', 'user_permissions', 'groups', 'ret_naturalday_joined', 'profile')
+                  'is_superuser', 'is_user', 'user_permissions', 'groups', 'joined_in', 'profile')
 
 
     def create(self, validated_data):

@@ -83,6 +83,7 @@ class Post(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     safe = models.BooleanField(default=False, help_text=_(
         'If saving in false condition post will delete, in True condition post will publish'))
+    point_game = models.BooleanField(default=False)
 
     @cached_property
     def get_privacy_str(self):
