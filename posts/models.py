@@ -33,12 +33,14 @@ class Album(models.Model):
 
     @cached_property
     def get_photos_number(self):
-        length = self.album_media.values_list('img', flat=True).exclude(img__exact='', img__isnull=False)
+        length = self.album_media.values_list('img', flat=True).exclude(img__exact='', img__isnull=False).filter(
+            post__safe=True)
         return len(length)
 
     @cached_property
     def get_videos_number(self):
-        length = self.album_media.values_list('video', flat=True).exclude(video__exact='', video__isnull=False)
+        length = self.album_media.values_list('video', flat=True).exclude(video__exact='', video__isnull=False).filter(
+            post__safe=True)
         return len(length)
 
 

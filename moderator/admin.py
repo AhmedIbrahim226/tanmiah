@@ -4,7 +4,7 @@ from django.db.models import F
 from posts.models import PostMedia
 from .models import PostProxy
 from .points.models import PointFunction, UserPointFunctionEarning, TotalPoint
-
+import logging
 
 class PostMediaInline(admin.TabularInline):
     model = PostMedia
@@ -19,6 +19,7 @@ class PostMediaInline(admin.TabularInline):
         return False
 
 
+logger = logging.getLogger('points')
 def manage_point_functions_on_post(obj, functions):
     if functions.exists():
         for func in functions:
@@ -31,16 +32,18 @@ def manage_point_functions_on_post(obj, functions):
                 if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
                     TotalPoint.objects.filter(point=func.point, user=obj.owner).update(
                         total_earning=F('total_earning') - func.earn)
+                    logger.warning(f'{func.earn} points are deducted from the user from point: {func.point.singular_name} ==> {func.get_when_str}', extra={'username': obj.owner.username})
                     if not created:
                         check_to_increase.earns_until_now += func.earn
                         check_to_increase.save()
-
-            if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
-                TotalPoint.objects.filter(point=func.point, user=obj.owner).update(
-                    total_earning=F('total_earning') + func.earn)
-                if not created:
-                    check_to_increase.earns_until_now += func.earn
-                    check_to_increase.save()
+            else:
+                if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
+                    TotalPoint.objects.filter(point=func.point, user=obj.owner).update(
+                        total_earning=F('total_earning') + func.earn)
+                    logger.info(f'{func.earn} points earned by the user from point: {func.point.singular_name} ==> {func.get_when_str}', extra={'username': obj.owner.username})
+                    if not created:
+                        check_to_increase.earns_until_now += func.earn
+                        check_to_increase.save()
 
 
 @admin.register(PostProxy)

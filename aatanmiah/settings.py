@@ -193,3 +193,54 @@ JAZZMIN_SETTINGS = {
 JAZZMIN_UI_TWEAKS = {
     "theme": "flatly",
 }
+
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(username)s %(asctime)s %(levelname)s: %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'special': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        }
+    },
+    'handlers': {
+        'point_game_handler': {
+            'level': 'INFO',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': BASE_DIR / 'logs/point_game.log',
+            'when': 'w0',
+            'interval': 1,
+            'backupCount': 2,
+        },
+        'default_handler': {
+            'level': 'CRITICAL',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': BASE_DIR / 'logs/default.log',
+            'when': 'm',
+            'interval': 1,
+            'backupCount': 2,
+        },
+    },
+    'loggers': {
+        'points': {
+            'handlers': ['point_game_handler'],
+            'level': 'INFO',
+        },
+        'default': {
+            'handlers': ['default_handler'],
+            'level': 'CRITICAL',
+        },
+    },
+}
