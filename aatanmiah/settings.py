@@ -43,8 +43,8 @@ INSTALLED_APPS = [
     # App Applications
     'users',
     'posts',
-    'admin_control',
-    'admin_control.points',
+    'moderator',
+    'moderator.points',
     'chats',
 
     # Third-party apps
