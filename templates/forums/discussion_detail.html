@@ -54,6 +54,7 @@
 </div>
 <div class="container">
     <hr>
+    <hr>
     <h3>{{object.get_answers_count}} Answers</h3>
     <div class="row justify-content-center">
         {% for answer in object.get_answers %}
@@ -61,6 +62,14 @@
                 <a href="javascript:answerVoteFunc({{answer.id}}, '+')" style="text-decoration: none;">+</a>
                 <p>{{answer.vote.count}} votes</p>
                 <a href="javascript:answerVoteFunc({{answer.id}}, '-')" style="text-decoration: none;">-</a>
+                {% if answer.verified %}
+                    <hr>
+                    <a class="position-relative">
+                        <span class="position-absolute top-0 start-100 translate-middle p-2 bg-success border border-light rounded-circle">
+                            <span class="visually-hidden">New alerts</span>
+                        </span>
+                    </a>
+                {% endif %}
             </div>
             <div class="col-6 mt-5">
                 <p>{{ answer.content | markdown | safe }}</p>
@@ -87,6 +96,7 @@
 </div>
 
 <div class="container">
+    <hr>
     <hr>
     <h3>Your Answer</h3>
 

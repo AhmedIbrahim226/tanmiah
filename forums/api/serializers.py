@@ -24,18 +24,6 @@ class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         fields = ('author', 'discussion','content', 'at')
-    
-    
-    def create(self, validated_data):
-        print(validated_data)
-        answer = Answer.objects.create(**validated_data)
-
-        discussion = answer.discussion
-        discussion.time_case = 2
-        discussion.at_date_time = answer.created_at
-        discussion.save()
-
-        return answer
 
 class AnswerCommentSerializer(serializers.ModelSerializer):
     at = serializers.ReadOnlyField(source='ret_created')

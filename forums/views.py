@@ -45,7 +45,7 @@ class DiscussionListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         forum_id = self.kwargs.get('forum_id')
-        return queryset.filter(forum=forum_id)
+        return queryset.filter(forum=forum_id, safe=True).order_by('-at_date_time')
     
 
 

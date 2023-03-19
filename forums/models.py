@@ -41,12 +41,6 @@ class Discussion(models.Model):
     # admin permission
     safe = models.BooleanField(default=False)
 
-    # def save(self, *args, **kwargs):
-    #     forum = self.forum
-    #     forum.last_updated = self.created_at
-    #     forum.save()
-    #     return super().save(args, kwargs)
-
     def __str__(self):
         return self.title
     
@@ -68,21 +62,22 @@ class Discussion(models.Model):
     
     @cached_property
     def get_answers_count(self):
-        return self.answers.count()
+        return self.answers.filter(safe=True).count()
     
     @cached_property
     def get_answers(self):
-        return self.answers.all()
+        return self.answers.filter(safe=True).order_by('-verified', 'vote')
     
     @cached_property
     def get_comments(self):
-        return self.discussion_comments.all()
+        return self.discussion_comments.filter(safe=True).order_by('-created_at')
 
 class DiscussionComment(models.Model):
     author = models.ForeignKey(UserAuth, on_delete=models.CASCADE, related_name='user_discussion_comments')
     discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE, related_name='discussion_comments')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    at_date_time = models.DateTimeField(auto_now=True)
 
     # admin permission
     safe = models.BooleanField(default=False)
@@ -90,6 +85,10 @@ class DiscussionComment(models.Model):
     @cached_property
     def ret_created(self):
         return naturaltime(self.created_at)
+    
+    @cached_property
+    def ret_at_date_time(self):
+        return naturaltime(self.at_date_time)
 
 
 class Answer(models.Model):
@@ -97,6 +96,7 @@ class Answer(models.Model):
     discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE, related_name='answers')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    at_date_time = models.DateTimeField(auto_now=True)
 
     verified = models.BooleanField(default=False)
     vote = models.ManyToManyField(to=UserAuth, blank=True)
@@ -104,21 +104,18 @@ class Answer(models.Model):
     # admin permission
     safe = models.BooleanField(default=False)
 
-    # def save(self, *args, **kwargs):
-    #     discussion = self.discussion
-    #     discussion.time_case = 2
-    #     discussion.at_date_time = self.created_at
-    #     discussion.save()
-    #     return super().save(args, kwargs)
-    
     @cached_property
     def ret_created_at(self):
         return naturaltime(self.created_at)
     
+    @cached_property
+    def ret_at_date_time(self):
+        return naturaltime(self.at_date_time)
+    
     
     @cached_property
     def get_comments(self):
-        return self.answer_comments.all()
+        return self.answer_comments.filter(safe=True).order_by('-created_at')
 
 
 class AnswerComment(models.Model):
@@ -126,6 +123,7 @@ class AnswerComment(models.Model):
     answer = models.ForeignKey(Answer, on_delete=models.CASCADE, related_name='answer_comments')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    at_date_time = models.DateTimeField(auto_now=True)
 
     # admin permission
     safe = models.BooleanField(default=False)
@@ -133,3 +131,7 @@ class AnswerComment(models.Model):
     @cached_property
     def ret_created(self):
         return naturaltime(self.created_at)
+    
+    @cached_property
+    def ret_at_date_time(self):
+        return naturaltime(self.at_date_time)

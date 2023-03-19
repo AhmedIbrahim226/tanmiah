@@ -30,10 +30,10 @@ class DiscussionAdmin(admin.ModelAdmin):
 @admin.register(DiscussionComment)
 class DiscussionCommentAdmin(admin.ModelAdmin):
     """"""
-    readonly_fields = ('at', )
+    readonly_fields = ('_created_at', )
 
-    def at(self, obj):
-        return obj.ret_naturaltime_created
+    def _created_at(self, obj):
+        return obj.ret_created
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
