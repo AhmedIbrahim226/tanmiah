@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -26,7 +25,6 @@ SECRET_KEY = 'django-insecure-8i9xlwa10+oo^ppwb9xz&cx+67hso=$16_ci^y(ha+avg5mc#7
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -46,10 +44,14 @@ INSTALLED_APPS = [
     'moderator',
     'moderator.points',
     'chats',
+    'forums',
 
     # Third-party apps
     'rest_framework',
     'phonenumber_field',
+    'taggit',
+    "crispy_forms",
+    "crispy_bootstrap5",
 ]
 
 MIDDLEWARE = [
@@ -77,11 +79,12 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
             ],
+            'builtins': ['templatetags.tags'],
         },
     },
 ]
 
-WSGI_APPLICATION = 'aatanmiah.wsgi.application'
+# WSGI_APPLICATION = 'aatanmiah.wsgi.application'
 ASGI_APPLICATION = "aatanmiah.asgi.application"
 
 # Database
@@ -97,7 +100,6 @@ DATABASES = {
         'PORT': 5432
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -117,7 +119,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -128,7 +129,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -146,13 +146,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 AUTH_USER_MODEL = 'users.UserAuth'
 AUTHENTICATION_BACKENDS = ['users.auth_backend.UserAuthBackend']
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
-
 
 CHANNEL_LAYERS = {
     "default": {
@@ -168,7 +166,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ]
 }
-
 
 CACHES = {
     'default': {
@@ -194,53 +191,6 @@ JAZZMIN_UI_TWEAKS = {
     "theme": "flatly",
 }
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
-
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(username)s %(asctime)s %(levelname)s: %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
-    'filters': {
-        'special': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        }
-    },
-    'handlers': {
-        'point_game_handler': {
-            'level': 'INFO',
-            'formatter': 'verbose',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': BASE_DIR / 'logs/point_game.log',
-            'when': 'w0',
-            'interval': 1,
-            'backupCount': 2,
-        },
-        'default_handler': {
-            'level': 'CRITICAL',
-            'formatter': 'verbose',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': BASE_DIR / 'logs/default.log',
-            'when': 'm',
-            'interval': 1,
-            'backupCount': 2,
-        },
-    },
-    'loggers': {
-        'points': {
-            'handlers': ['point_game_handler'],
-            'level': 'INFO',
-        },
-        'default': {
-            'handlers': ['default_handler'],
-            'level': 'CRITICAL',
-        },
-    },
-}
+CRISPY_TEMPLATE_PACK = "bootstrap5"

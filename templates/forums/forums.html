@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            {% for forum in forums %}
+
+                <div class="col-4">
+                    <div class="card mb-3">
+                        <img src="{{ forum.bg.url }}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{forum.name}}</h5>
+                            <p class="card-text"><small class="text-muted">Last updated {{forum.ret_naturaltime_updated}}</small></p>
+                        </div>
+                        <a href="{% url 'discussion_list_view' forum.id %}" class="stretched-link"></a>
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+    </div>
+{% endblock content %}
+
+
+{% block scripfiles %}
+
+{% endblock scripfiles %}
+
+{% block scripting %}
+  <script>
+    console.log('Test');
+  </script>
+{% endblock scripting %}

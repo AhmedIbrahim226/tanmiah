@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block header %}
+<style>
+    body{
+        background-color: rgba(0, 0, 0, 0.773);
+        color: #fff;
+    }
+</style>
+{% endblock header %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <a href="{% url 'new_discussion_view' forum_id %}" class="btn btn-primary">New Discussion</a>
+
+        {% for obj in object_list %}
+        <div class="col-3 mt-5">
+            <p>{{obj.vote.count}} votes</p>
+            <p>{{obj.view}} views</p>
+            <p>{{obj.get_answers_count}} answers</p>
+        </div>
+        <div class="col-6 mt-5">
+            <p><a href="{% url 'discussion_detail_view' obj.pk  %}">{{ obj.title }}</a></p>
+            {% for tag in obj.tags.all %}
+                <span class="badge text-bg-info" style="margin: 0 5px 0 5px;">
+                    <a href="" style="text-decoration: none; color: #000;">{{tag.name}}</a>
+                </span>
+            {% endfor %}
+        </div>
+        <div class="col-3 mt-5">
+            <img src="{{ obj.author.profile.personal_img.url }}" width="50px" height="50px" style="border-radius: 50%"/>
+            <a href="#"  style="margin-left: 10px; text-decoration: none;">{{ obj.author.username }}</a>
+            <span style="margin-left: 10px;">{{obj.ret_time_case}} <a href="#"  style="text-decoration: none;">{{ obj.ret_at_date_time }}</a></span>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock content %}
+
+
+{% block scripfiles %}
+
+{% endblock scripfiles %}
+
+{% block scripting %}
+<script>
+      console.log('Test');
+
+</script>
+{% endblock scripting %}

@@ -32,10 +32,12 @@ urlpatterns = [
     path('', include('users.urls')),
     path('posts/', include('posts.urls')),
     path('chats/', include('chats.urls')),
+    path('forums/', include('forums.urls')),
 
     # API
     path('api/users/', include('users.api.urls')),
     path('api/posts/', include('posts.api.urls')),
+    path('api/forums/', include('forums.api.urls')),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

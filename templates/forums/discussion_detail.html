@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block header %}
+<style>
+    /* body{
+        background-color: rgba(0, 0, 0, 0.773);
+        color: #fff;
+    } */
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+{% endblock header %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        
+        <div class="col-3 mt-5">
+            <a href="javascript:voteFunc({{object.id}}, '+')" style="text-decoration: none;">+</a>
+            <p>{{object.vote.count}} votes</p>
+            <a href="javascript:voteFunc({{object.id}}, '-')" style="text-decoration: none;">-</a>
+            <hr>
+            <p>{{object.view}} views</p>
+        </div>
+        <div class="col-6 mt-5">
+            <p>{{ object.title }}</p>
+            <p>{{ object.content | markdown | safe }}</p>
+            {% for tag in object.tags.all %}
+                <span class="badge text-bg-info" style="margin: 0 5px 0 5px;">
+                    <a href="" style="text-decoration: none; color: #000;">{{tag.name}}</a>
+                </span>
+            {% endfor %}
+            <hr>
+            <div id="discussion-comment-div">
+                {% for comment in object.get_comments %}
+                {{comment.content}}
+                <span class="text-muted">{{comment.ret_created}}</span>
+                <hr>
+                {% endfor %}
+            </div>
+            <div id="comment-div-id">
+                <a href="javascript:commentBody()" class="text-muted" style="text-decoration: none;">Add a comment</a>
+            </div>
+        </div>
+        <div class="col-3 mt-5">
+            <img src="{{ object.author.profile.personal_img.url }}" width="50px" height="50px" style="border-radius: 50%"/>
+            <a href="#"  style="margin-left: 10px; text-decoration: none;">{{ object.author.username }}</a>
+            <span style="margin-left: 10px;">asked <a href="#"  style="text-decoration: none;">{{ object.ret_created_at }}</a></span>
+        </div>
+
+    </div>
+</div>
+<div class="container">
+    <hr>
+    <h3>{{object.get_answers_count}} Answers</h3>
+    <div class="row justify-content-center">
+        {% for answer in object.get_answers %}
+            <div class="col-3 mt-5">
+                <a href="javascript:answerVoteFunc({{answer.id}}, '+')" style="text-decoration: none;">+</a>
+                <p>{{answer.vote.count}} votes</p>
+                <a href="javascript:answerVoteFunc({{answer.id}}, '-')" style="text-decoration: none;">-</a>
+            </div>
+            <div class="col-6 mt-5">
+                <p>{{ answer.content | markdown | safe }}</p>
+                <hr>
+                <div id="answer-comment-div">
+                    {% for comment in answer.get_comments %}
+                        {{comment.content}}
+                        <span class="text-muted">{{comment.ret_created}}</span>
+                        <hr>
+                    {% endfor %}
+                </div>
+                <div class="answer-comment-div-class">
+                    <a href="javascript:void(0)" onclick="answerCommentBody(this, '{{answer.id}}', '{{answer.id}}')" class="text-muted" style="text-decoration: none;">Add a comment</a>
+                </div>
+            </div>
+            <div class="col-3 mt-5">
+                <img src="{{ object.author.profile.personal_img.url }}" width="50px" height="50px" style="border-radius: 50%"/>
+                <a href="#"  style="margin-left: 10px; text-decoration: none;">{{ answer.author.username }}</a>
+                <span style="margin-left: 10px;">answered <a href="#"  style="text-decoration: none;">{{ answer.ret_created_at }}</a></span>
+            </div>
+        {% endfor %}
+    </div>
+    
+</div>
+
+<div class="container">
+    <hr>
+    <h3>Your Answer</h3>
+
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <input type="file" name="" id="inp_file_id" hidden>
+            <textarea name="" id="id_content" cols="30" rows="10"></textarea>
+            <button class="btn btn-primary btn-sm" onclick="newAnswer()">Post Your Answer</button>
+        </div>
+    </div>
+    
+</div>
+{% endblock content %}
+
+
+{% block scripfiles %}
+
+{% endblock scripfiles %}
+
+{% block scripting %}
+<script>
+    const protocol = window.location.protocol
+    const host = window.location.host
+    let csrfMiddlewareToken = "{{ csrf_token }}"
+    
+    // discussion vote section
+    function voteFunc(id, vote_type) {
+        axios.post(
+            `${protocol}//${host}/api/forums/forum/discussion/${id}/vote/`,
+            {'vote_type': vote_type},
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+            
+        )
+        .then(res => {
+            console.log("res => ", res.data)
+
+        })
+    }
+
+    // discussion comment section
+    function commentBody() {
+        let commentDivId = document.querySelector('#comment-div-id')
+        commentDivId.innerHTML = `
+            <textarea class="form-control" id="content-id" cols="30" rows="10"></textarea>
+            <a href="javascript:addComment({{object.id}})" class="btn btn-primary btn-sm">Add a comment</a>
+        `
+    }
+
+    function addComment(discussion_id) {
+        let contentId = document.querySelector('#content-id')
+
+        axios.post(
+            `${protocol}//${host}/api/forums/forum/discussion/comment/`,
+            {
+                'author': '{{user.id}}',
+                'discussion': discussion_id,
+                'content': contentId.value,
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+            
+        )
+        .then(res => {
+            console.log("res => ", res.data)
+            // let discussionCommentDiv = document.querySelector('#discussion-comment-div')
+            // console.log(res.status);
+            // discussionCommentDiv.insertAdjacentHTML('beforeend', `${res.data.content} <span class="text-muted">${res.data.at}</span><hr>`)
+
+        })
+        .catch(err => {
+            if (err.response) {
+                console.log(err.response.status);
+                console.log(err.response.statusText);
+                console.log(err.message);
+                console.log(err.response.headers); // 👉️ {... response headers here}
+                console.log(err.response.data); // 👉️ {... response data here}
+            }
+        })
+    }
+
+    // Answer comment section
+    function answerCommentBody(_this, answer_id, identify){
+        let answerCommentDivClass = _this.parentElement
+
+        answerCommentDivClass.innerHTML = `
+            <textarea class="form-control" id="answer-content-id-${identify}" cols="30" rows="10"></textarea>
+            <a href="javascript:addAnswerComment(${answer_id}, ${identify})" class="btn btn-primary btn-sm">Add a comment</a>
+        `
+    }
+
+    function addAnswerComment(answer_id, identify) {
+        let answerContentId = document.querySelector(`#answer-content-id-${identify}`)
+
+        axios.post(
+            `${protocol}//${host}/api/forums/forum/answer/comment/`,
+            {
+                'author': '{{user.id}}',
+                'answer': answer_id,
+                'content': answerContentId.value,
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+            
+        )
+        .then(res => {
+            console.log("res => ", res.data)
+            // let answerCommentDiv = document.querySelector('#answer-comment-div')
+            // console.log(res.status);
+            // answerCommentDiv.insertAdjacentHTML('beforeend', `${res.data.content} <span class="text-muted">${res.data.at}</span><hr>`)
+
+        })
+        .catch(err => {
+            if (err.response) {
+                console.log(err.response.status);
+                console.log(err.response.statusText);
+                console.log(err.message);
+                console.log(err.response.headers); // 👉️ {... response headers here}
+                console.log(err.response.data); // 👉️ {... response data here}
+            }
+        })
+    }
+
+    function answerVoteFunc(id, vote_type) {
+        axios.post(
+            `${protocol}//${host}/api/forums/forum/answer/${id}/vote/`,
+            {'vote_type': vote_type},
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+            
+        )
+        .then(res => {
+            console.log("res => ", res.data)
+
+        })
+    }
+    
+    // Your answer section
+    let InpFileId = document.querySelector('#inp_file_id')
+
+    InpFileId.addEventListener('change', (e) => {
+        let form = new FormData()
+        console.log(e.target.files[0]);
+        form.append('file', e.target.files[0])
+        let res = axios.post(
+            `${protocol}//${host}/api/forums/forum/file/`,
+            form,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+            
+        )
+
+        res.then(res => {
+            console.log("res => ", res.data.file);
+
+            let fileUrl = res.data.file
+            let fileName = fileUrl.split('.')[fileUrl.split('.').length - 2].split('/')[fileUrl.split('.')[fileUrl.split('.').length - 2].split('/').length - 1]
+
+            let currentValue = simpleMd.value()
+            simpleMd.value(`${currentValue}\r\n![${fileName}](${fileUrl})`)
+
+        })
+
+    })
+    
+    let simpleMd = new SimpleMDE({
+        element: document.getElementById("id_content"),
+        forceSync: true,
+        insertTexts: {
+            horizontalRule: ["", "\n\n-----\n\n"],
+            image: '',
+            link: '',
+            table: ["", "\n\n| Column 1 | Column 2 | Column 3 |\n| -------- | -------- | -------- |\n| Text     | Text      | Text     |\n\n"],
+        },
+    });
+
+    let imgBtn = document.querySelector(".fa-picture-o")
+    imgBtn.addEventListener('click', (e) => {
+        InpFileId.click()
+    })
+
+    function newAnswer() {
+        let content = simpleMd.value()
+
+        axios.post(
+            `${protocol}//${host}/api/forums/forum/answer/`,
+            {
+                'author': '{{user.id}}',
+                'content': content,
+                'discussion': '{{object.id}}'
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    'x-csrftoken': csrfMiddlewareToken
+                }
+            }
+            
+        )
+        .then(res => {
+            console.log("res => ", res.data)
+
+        })
+        .catch(err => {
+            if (err.response) {
+                console.log(err.response.status);
+                console.log(err.response.statusText);
+                console.log(err.message);
+                console.log(err.response.headers); // 👉️ {... response headers here}
+                console.log(err.response.data); // 👉️ {... response data here}
+            }
+        })
+    }
+    
+</script>
+{% endblock scripting %}

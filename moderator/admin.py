@@ -3,8 +3,8 @@ from django.db.models import F
 
 from posts.models import PostMedia
 from .models import PostProxy
-from .points.models import PointFunction, UserPointFunctionEarning, TotalPoint
-import logging
+from .points.models import PointFunction, UserPointFunctionEarning, TotalPoint, PointLog
+
 
 class PostMediaInline(admin.TabularInline):
     model = PostMedia
@@ -19,7 +19,6 @@ class PostMediaInline(admin.TabularInline):
         return False
 
 
-logger = logging.getLogger('points')
 def manage_point_functions_on_post(obj, functions):
     if functions.exists():
         for func in functions:
@@ -32,7 +31,8 @@ def manage_point_functions_on_post(obj, functions):
                 if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
                     TotalPoint.objects.filter(point=func.point, user=obj.owner).update(
                         total_earning=F('total_earning') - func.earn)
-                    logger.warning(f'{func.earn} points are deducted from the user from point: {func.point.singular_name} ==> {func.get_when_str}', extra={'username': obj.owner.username})
+                    log_message = f'{func.earn} points are deducted from the user {obj.owner.username} from point: {func.point.singular_name} ==> {func.get_when_str}'
+                    PointLog.objects.create(point=func.point, log=log_message)
                     if not created:
                         check_to_increase.earns_until_now += func.earn
                         check_to_increase.save()
@@ -40,7 +40,8 @@ def manage_point_functions_on_post(obj, functions):
                 if not check_to_increase.earns_until_now + func.earn > check_to_increase.get_max_to_earn:
                     TotalPoint.objects.filter(point=func.point, user=obj.owner).update(
                         total_earning=F('total_earning') + func.earn)
-                    logger.info(f'{func.earn} points earned by the user from point: {func.point.singular_name} ==> {func.get_when_str}', extra={'username': obj.owner.username})
+                    log_message = f'{func.earn} points earned by the user {obj.owner.username} from point: {func.point.singular_name} ==> {func.get_when_str}'
+                    PointLog.objects.create(point=func.point, log=log_message)
                     if not created:
                         check_to_increase.earns_until_now += func.earn
                         check_to_increase.save()
@@ -49,6 +50,7 @@ def manage_point_functions_on_post(obj, functions):
 @admin.register(PostProxy)
 class PostProxyAdmin(admin.ModelAdmin):
     filter_horizontal = ('share_with',)
+
     def has_add_permission(self, request):
         return False
 

@@ -6,8 +6,10 @@
     <title>Development platform - {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <script src="{% static 'js/axios.min.js' %}"></script>
+    {% block header %}
+    {% endblock header %}
 </head>
-<body style="background-color: #faf9f7">
+<body>
 {% block content %}
 
 {% endblock %}

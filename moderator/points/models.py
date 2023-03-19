@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from django.db import models
 from django.utils.functional import cached_property
-from django.contrib.humanize.templatetags.humanize import naturalday, naturaltime
 
 from posts.models import Post
 from users.models import UserAuth
@@ -134,3 +133,9 @@ class TotalPoint(models.Model):
 
     class Meta:
         unique_together = ('point', 'user')
+
+
+class PointLog(models.Model):
+    point = models.ForeignKey(to=Point, on_delete=models.CASCADE, related_name='point_logs')
+    log = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

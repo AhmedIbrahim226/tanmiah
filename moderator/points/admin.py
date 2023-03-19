@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import (Point, PointFunction, UserPointFunctionEarning, TotalPoint)
 from django.utils.html import html_safe
+
 from .forms import PointFunctionForm, PointFunctionFormSet
+from .models import (Point, PointFunction, UserPointFunctionEarning, TotalPoint, PointLog)
 
 
 @html_safe
@@ -24,6 +25,7 @@ class InlinePointFunction(admin.TabularInline):
 class PointFunctionAdmin(admin.ModelAdmin):
     """"""
 
+
 @admin.register(Point)
 class PointAdmin(admin.ModelAdmin):
     """"""
@@ -38,3 +40,21 @@ class TotalPointAdmin(admin.ModelAdmin):
 @admin.register(UserPointFunctionEarning)
 class UserPointFunctionEarningAdmin(admin.ModelAdmin):
     """"""
+
+
+@admin.register(PointLog)
+class PointLogAdmin(admin.ModelAdmin):
+    list_display = ('point', 'log', 'view_created_at')
+    search_fields = ('point__singular_name', 'log', 'created_at')
+    readonly_fields = ('view_created_at',)
+    list_display_links = None
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.display(empty_value='???')
+    def view_created_at(self, obj):
+        return obj.created_at.strftime("%m/%d/%Y, %H:%M:%S")

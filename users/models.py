@@ -1,15 +1,15 @@
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.utils.translation import gettext_lazy as _
-from django.utils.functional import cached_property
-from phonenumber_field.modelfields import PhoneNumberField
 from django.contrib.humanize.templatetags.humanize import naturalday
+from django.db import models
+from django.utils.functional import cached_property
+from django.utils.translation import gettext_lazy as _
+from phonenumber_field.modelfields import PhoneNumberField
+
 
 class UserAuthManager(BaseUserManager):
 
     def create_user(self, username, first_name, last_name, phone_number, password=None):
-
         user = self.model(
             username=username,
             first_name=first_name,
@@ -38,7 +38,7 @@ class UserAuthManager(BaseUserManager):
 
 class UserAuth(AbstractBaseUser, PermissionsMixin):
     username_validator = UnicodeUsernameValidator()
-    
+
     username = models.CharField(
         _("username"),
         max_length=150,
@@ -55,10 +55,14 @@ class UserAuth(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
 
-    is_staff = models.BooleanField(_('staff status'), default=False, help_text=_('Designates whether the user can log into this admin site.'))
-    is_active = models.BooleanField(_('active'), default=False, help_text=_('Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
-    is_user = models.BooleanField(_('user status'), default=False, help_text=_('Designates if the user has a non-privileged user.'))
-    is_moderator = models.BooleanField(_('moderator status'), default=False, help_text=_('Designates whether the user permissions as moderator.'))
+    is_staff = models.BooleanField(_('staff status'), default=False,
+                                   help_text=_('Designates whether the user can log into this admin site.'))
+    is_active = models.BooleanField(_('active'), default=False, help_text=_(
+        'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'))
+    is_user = models.BooleanField(_('user status'), default=False,
+                                  help_text=_('Designates if the user has a non-privileged user.'))
+    is_moderator = models.BooleanField(_('moderator status'), default=False,
+                                       help_text=_('Designates whether the user permissions as moderator.'))
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['first_name', 'last_name', 'phone_number']
@@ -73,7 +77,6 @@ class UserAuth(AbstractBaseUser, PermissionsMixin):
         return naturalday(self.date_joined)
 
 
-
 class UserProfile(models.Model):
     owner = models.OneToOneField(UserAuth, on_delete=models.CASCADE, related_name='profile')
     bg_img = models.ImageField(upload_to='users/profiles/bg/', blank=True, null=True)
@@ -84,5 +87,3 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.owner.username
-
-
