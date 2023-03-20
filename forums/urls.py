@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ForumsView, DiscussionListView, DiscussionCreateView, DiscussionDetailView
+from .views import ForumsView, DiscussionListView, DiscussionCreateView, DiscussionDetailView, DiscussionListViewByTag
 
 
 urlpatterns = [
@@ -22,6 +22,11 @@ urlpatterns = [
         'discussions/<discussion_id>/',
         DiscussionDetailView.as_view(),
         name='discussion_detail_view'
-    )
+    ),
+    path(
+        "discussions/tagged/<tag_slug>",
+        DiscussionListViewByTag.as_view(),
+        name='discussion_tag_list_view'
+    ),
     
 ]

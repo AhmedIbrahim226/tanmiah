@@ -1,6 +1,7 @@
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.db import models
 from django.utils.functional import cached_property
+from django.utils.translation import gettext_lazy as _
 
 from users.models import UserAuth
 from taggit.managers import TaggableManager
@@ -39,7 +40,8 @@ class Discussion(models.Model):
     tags = TaggableManager()
 
     # admin permission
-    safe = models.BooleanField(default=False)
+    safe = models.BooleanField(default=False,  help_text=_(
+        'If saving in false condition post will delete, in True condition post will publish'))
 
     def __str__(self):
         return self.title
@@ -80,7 +82,8 @@ class DiscussionComment(models.Model):
     at_date_time = models.DateTimeField(auto_now=True)
 
     # admin permission
-    safe = models.BooleanField(default=False)
+    safe = models.BooleanField(default=False,  help_text=_(
+        'If saving in false condition post will delete, in True condition post will publish'))
 
     @cached_property
     def ret_created(self):
@@ -102,7 +105,8 @@ class Answer(models.Model):
     vote = models.ManyToManyField(to=UserAuth, blank=True)
 
     # admin permission
-    safe = models.BooleanField(default=False)
+    safe = models.BooleanField(default=False,  help_text=_(
+        'If saving in false condition post will delete, in True condition post will publish'))
 
     @cached_property
     def ret_created_at(self):
@@ -126,7 +130,8 @@ class AnswerComment(models.Model):
     at_date_time = models.DateTimeField(auto_now=True)
 
     # admin permission
-    safe = models.BooleanField(default=False)
+    safe = models.BooleanField(default=False,  help_text=_(
+        'If saving in false condition post will delete, in True condition post will publish'))
 
     @cached_property
     def ret_created(self):

@@ -14,8 +14,6 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <a href="{% url 'new_discussion_view' forum_id %}" class="btn btn-primary">New Discussion</a>
-
         {% for obj in object_list %}
         <div class="col-3 mt-5">
             <p>{{obj.vote.count}} votes</p>

@@ -48,6 +48,15 @@ class DiscussionListView(LoginRequiredMixin, ListView):
         return queryset.filter(forum=forum_id, safe=True).order_by('-at_date_time')
     
 
+class DiscussionListViewByTag(LoginRequiredMixin, ListView):
+    model = Discussion
+    template_name = 'forums/discussion_tag_list.html'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        tag_slug = self.kwargs.get('tag_slug')
+        return queryset.filter(tags__slug=tag_slug, safe=True).order_by('-at_date_time')
+
 
 class DiscussionDetailView(LoginRequiredMixin, DetailView):
     model = Discussion
