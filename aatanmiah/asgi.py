@@ -16,6 +16,7 @@ from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 from channels.routing import ProtocolTypeRouter, URLRouter
 from posts.channels.consumers import PostConsumer
+from forums.channels.consumers import ForumFollowingNotification
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'aatanmiah.settings')
 
@@ -24,7 +25,8 @@ application = ProtocolTypeRouter(
         'http': get_asgi_application(),
         'websocket': AllowedHostsOriginValidator(
             AuthMiddlewareStack(URLRouter([
-                path('ws/post/consumer/', PostConsumer.as_asgi())
+                path('ws/post/consumer/', PostConsumer.as_asgi()),
+                path('ws/forum/consumer/', ForumFollowingNotification.as_asgi()),
             ]))
         )
     }

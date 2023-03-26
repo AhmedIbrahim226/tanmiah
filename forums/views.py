@@ -5,6 +5,7 @@ from .forms import DiscussionForm
 from .models import Forum, Discussion
 from django.db.models import F
 
+
 class ForumsView(LoginRequiredMixin, TemplateView):
     login_url = reverse_lazy('login')
     template_name = 'forums/forums.html'
@@ -24,6 +25,8 @@ class DiscussionCreateView(LoginRequiredMixin, CreateView):
         instance = form.save(commit=False)
         instance.author = self.request.user
         instance.forum = Forum.objects.get(id=self.kwargs.get('forum_id'))
+        if self.request.user.has_perm('forums.denied_to_add_safe_discussion') and not self.request.user.is_superuser:
+            instance.safe = False
         instance.save()
         form.save_m2m()
         return super().form_valid(form)

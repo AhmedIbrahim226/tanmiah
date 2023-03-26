@@ -43,8 +43,10 @@ INSTALLED_APPS = [
     'posts',
     'moderator',
     'moderator.points',
+    'moderator.reports',
     'chats',
     'forums',
+    'notices',
 
     # Third-party apps
     'rest_framework',

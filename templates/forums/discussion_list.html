@@ -15,6 +15,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <a href="{% url 'new_discussion_view' forum_id %}" class="btn btn-primary">New Discussion</a>
+        <a href="javascript:void(0)" class="btn btn-link" onclick="testFunc()">Subscription</a>
 
         {% for obj in object_list %}
         <div class="col-3 mt-5">
@@ -44,13 +45,26 @@
 {% endblock content %}
 
 
-{% block scripfiles %}
-
-{% endblock scripfiles %}
+{% block scriptfiles %}
+    <script src="{% static 'js/forums/websocket.js' %}"></script>
+{% endblock scriptfiles %}
 
 {% block scripting %}
 <script>
-      console.log('Test');
+    console.log('Test');
+    let socket = newWebsocket()
+    
 
+    function testFunc(){
+        console.log('clicked');
+        socket.send(JSON.stringify({
+            'type': 'new_forum_subscribe',
+            'forum_id': '{{forum_id}}',
+        }))
+    }
+    socket.onmessage = (e) => {
+        let json_data = JSON.parse(e.data);
+        console.log(json_data);
+    }
 </script>
 {% endblock scripting %}

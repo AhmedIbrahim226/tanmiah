@@ -5,6 +5,7 @@ from .models import Forum, ForumFile, Discussion, DiscussionComment, Answer, Ans
 @admin.register(Forum)
 class ForumAdmin(admin.ModelAdmin):
     readonly_fields = ('last_updated',)
+    filter_horizontal = ('subscribers',)
 
 
 @admin.register(ForumFile)
@@ -15,7 +16,7 @@ class ForumFileAdmin(admin.ModelAdmin):
 @admin.register(Discussion)
 class DiscussionAdmin(admin.ModelAdmin):
     readonly_fields = ('ret_created_at', 'ret_at_date_time')
-    filter_horizontal = ('vote',)
+    filter_horizontal = ('vote', 'subscribers')
     list_display = ['title', 'tag_list', 'view', 'votes', 'verified', 'safe']
 
     def get_queryset(self, request):

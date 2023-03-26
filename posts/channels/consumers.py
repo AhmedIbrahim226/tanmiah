@@ -1,6 +1,6 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
 import json
-from ..models import Post
+
+from channels.generic.websocket import AsyncWebsocketConsumer
 
 
 class PostConsumer(AsyncWebsocketConsumer):
@@ -12,16 +12,15 @@ class PostConsumer(AsyncWebsocketConsumer):
         print('Disconnected called')
         await self.channel_layer.group_discard('channel1', self.channel_name)
 
-
     async def receive(self, text_data=None, bytes_data=None):
         convert_toJson = json.loads(text_data)
         _type = convert_toJson.get('type')
         if _type == 'img':
             await self.send(json.dumps(
                 {
-                'type': 'img',
-                'message': convert_toJson.get('message'),
-                'img': convert_toJson.get('img')
+                    'type': 'img',
+                    'message': convert_toJson.get('message'),
+                    'img': convert_toJson.get('img')
                 }
             ))
 
@@ -31,4 +30,3 @@ class PostConsumer(AsyncWebsocketConsumer):
     #     context = event.get('context')
     #
     #     await self.send(json.dumps({'msg_type': establish_type, 'msg': context}))
-

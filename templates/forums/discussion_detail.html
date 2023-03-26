@@ -18,6 +18,7 @@
     <div class="row justify-content-center">
         
         <div class="col-3 mt-5">
+            <a href="javascript:void(0)" class="btn btn-link" onclick="testFunc('{{object.id}}')">Subscription</a><hr>
             <a href="javascript:voteFunc({{object.id}}, '+')" style="text-decoration: none;">+</a>
             <p>{{object.vote.count}} votes</p>
             <a href="javascript:voteFunc({{object.id}}, '-')" style="text-decoration: none;">-</a>
@@ -35,7 +36,7 @@
             <hr>
             <div id="discussion-comment-div">
                 {% for comment in object.get_comments %}
-                {{comment.content}}
+                <span id="discussion-comment-{{comment.id}}">{{comment.content}}</span>
                 <span class="text-muted">{{comment.ret_created}}</span>
                 <hr>
                 {% endfor %}
@@ -58,7 +59,7 @@
     <h3>{{object.get_answers_count}} Answers</h3>
     <div class="row justify-content-center">
         {% for answer in object.get_answers %}
-            <div class="col-3 mt-5">
+            <div class="col-3 mt-5" id="answer-{{answer.id}}">
                 <a href="javascript:answerVoteFunc({{answer.id}}, '+')" style="text-decoration: none;">+</a>
                 <p>{{answer.vote.count}} votes</p>
                 <a href="javascript:answerVoteFunc({{answer.id}}, '-')" style="text-decoration: none;">-</a>
@@ -76,7 +77,7 @@
                 <hr>
                 <div id="answer-comment-div">
                     {% for comment in answer.get_comments %}
-                        {{comment.content}}
+                        <span id="answer-comment-{{comment.id}}">{{comment.content}}</span>
                         <span class="text-muted">{{comment.ret_created}}</span>
                         <hr>
                     {% endfor %}
@@ -86,7 +87,7 @@
                 </div>
             </div>
             <div class="col-3 mt-5">
-                <img src="{{ object.author.profile.personal_img.url }}" width="50px" height="50px" style="border-radius: 50%"/>
+                <img src="{{ answer.author.profile.personal_img.url }}" width="50px" height="50px" style="border-radius: 50%"/>
                 <a href="#"  style="margin-left: 10px; text-decoration: none;">{{ answer.author.username }}</a>
                 <span style="margin-left: 10px;">answered <a href="#"  style="text-decoration: none;">{{ answer.ret_created_at }}</a></span>
             </div>
@@ -112,9 +113,9 @@
 {% endblock content %}
 
 
-{% block scripfiles %}
-
-{% endblock scripfiles %}
+{% block scriptfiles %}
+<script src="{% static 'js/forums/websocket.js' %}"></script>
+{% endblock scriptfiles %}
 
 {% block scripting %}
 <script>
@@ -329,6 +330,19 @@
                 console.log(err.response.data); // 👉️ {... response data here}
             }
         })
+    }
+
+    // WebSocket
+    console.log('Test');
+    let socket = newWebsocket()
+    
+
+    function testFunc(discussion_id){
+        console.log('clicked');
+        socket.send(JSON.stringify({
+            'type': 'new_discussion_subscribe',
+            'discussion_id': discussion_id,
+        }))
     }
     
 </script>
